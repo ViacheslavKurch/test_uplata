@@ -1,0 +1,41 @@
+version: '3.5'
+
+services:
+  php:
+    build:
+      ./Docker/php-fpm
+    container_name: php-fpm-test
+    hostname: php-fpm
+    volumes:
+      - ./:/var/www/html
+      - ./Docker/php-fpm/php.ini:/usr/local/etc/php/php.ini
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /data/postgres
+    volumes:
+      - ./Docker/postgres:/data/postgres
+    ports:
+      - ${POSTGRES_PORT}:5432
+    restart: unless-stopped
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:management
+    hostname: app-rabbitmq
+    ports:
+      - ${RABBITMQ_PORT}:5672
+      - ${RABBITMQ_MANAGEMENT_PORT}:15672
+    volumes:
+      - ./Docker/rabbitmq:/var/lib/rabbitmq/mnesia/rabbit@app-rabbitmq
+    environment:
+      RABBITMQ_ERLANG_COOKIE: 6085e2412b6fa88647466c6a81c0cea0
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /
